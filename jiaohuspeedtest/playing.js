@@ -223,7 +223,7 @@ function 计算分数和连击数() {
 
     for (let i = 0; i < 判定记录.length; i++) {
         let 本次判定 = 判定记录[i]
-        if (abs(本次判定) <= 160) {
+        if (abs(本次判定) <= 100) {
             连击++
         } else {
             连击 = 0
@@ -258,6 +258,8 @@ function 计算分数和连击数() {
  * @param {PointerEvent} 事件对象
  */
 function 单击(事件对象) {
+    事件对象.preventDefault()
+
     let 单击时时间戳 = 时间戳()
     let 横坐标 = 事件对象.clientX
     let 纵坐标 = 事件对象.clientY
@@ -278,7 +280,7 @@ function 单击(事件对象) {
                 单击时时间戳 +
                 节拍计时起始时间戳
             if (横向距离 > 屏幕宽度 / 10) continue
-            if (纵向距离 < -160 || 纵向距离 > 180) continue
+            if (纵向距离 < -100 || 纵向距离 > 105) continue
             if (纵向距离 < 最小纵向距离) {
                 最小纵向距离 = 纵向距离
                 最小横向距离 = 横向距离
@@ -296,10 +298,15 @@ function 单击(事件对象) {
     )
     音符容器.removeChild(音符容器.children[0])
     音符容器.remove()
-    console.log(最小纵向距离)
     判定记录.push(最小纵向距离)
-
-    事件对象.preventDefault()
+    let abs = Math.abs
+    if (abs(最小纵向距离) <= 60) {
+        document.getElementById('comboText').innerHTML = 'perfect'
+    } else if (abs(最小纵向距离) <= 100) {
+        document.getElementById('comboText').innerHTML = 'good'
+    } else if (abs(最小纵向距离) <= 105) {
+        document.getElementById('comboText').innerHTML = 'combo'
+    }
 }
 
 // 游戏流程
@@ -364,15 +371,22 @@ function 帧() {
             }
             if (
                 节拍转毫秒(当前音符.判定时间) - 毫秒计时 + 节拍计时起始时间戳 <
-                -160
+                -100
             ) {
                 判定记录.push(-200)
+                delete 当前判定线.瓜列表[j]
             }
         }
     }
     let 分数和连击数 = 计算分数和连击数()
     document.getElementById('scoreNum').innerHTML = 分数和连击数[0]
     document.getElementById('comboNum').innerHTML = 分数和连击数[1]
+    document.getElementById('BPM').innerHTML =
+        'BPM: ' +
+        Math.round(
+            120 * (64 / (64 - Math.floor(判定记录.length / 20))) * 1000
+        ) /
+            1000
 }
 function 游戏中() {
     removeEventListener('click', 游戏中)
