@@ -180,8 +180,8 @@ const 谱面位移 = 0 // 单位：毫秒
 
 var 物量 = 0
 
-const 浏览器宽度 = window.innerWidth
-const 浏览器高度 = window.innerHeight
+const 浏览器宽度 = document.body.clientWidth
+const 浏览器高度 = document.body.clientHeight
 
 const 图片宽度 = 120
 const 图片高度 = 120
