@@ -1,0 +1,34 @@
+body {
+    background-color: #2c3e50;
+    touch-action: none;
+}
+#ready {
+    color: #fff;
+    text-align: center;
+}
+#notes div {
+    position: absolute;
+}
+#notes div img {
+    width: 50%;
+    height: 50%;
+}
+#judgelines div {
+    position: absolute;
+    top: 600px;
+    border-top: 3px solid #dfe4ea;
+    height: 20px;
+    width: 100%;
+}
+#showScore {
+    color: #dfe4ea;
+    text-align: right;
+    font-size: 1.5em;
+}
+#showCombo {
+    color: #dfe4ea;
+    text-align: center;
+}
+#comboNum {
+    font-size: 1.5em;
+}
