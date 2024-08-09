@@ -65,7 +65,7 @@ window.onload = () => {
 window.onresize = () => {
     Position._calculateGameboardSize();
     pieces.forEach((piece) => {
-        piece.init();
+        piece.draw();
     });
 };
 

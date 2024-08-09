@@ -96,7 +96,7 @@ class Piece {
     damaged() {
         this.htmlElement.remove();
         this.position = new Position(-10, -10, true);
-        pieces.pop(this);
+        pieces.splice(pieces.indexOf(this), 1);
     }
 }
 
