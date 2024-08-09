@@ -1,5 +1,5 @@
 import { Position } from "./position.js";
-import { Piece } from "./piece.js";
+import { Piece, pieces } from "./piece.js";
 
 const returnSelf = (obj) => obj;
 
@@ -15,16 +15,19 @@ var PieceClickListener = (piece) => {
     let currentSingleSelection = currentSelection.current;
     let item = new SelectedItem(piece);
     if (currentSingleSelection != null && currentSingleSelection.type == ItemType.Piece) {
-        console.log(piece)
+        console.log(piece);
         if (piece.selected) {
             piece.selected = false;
-            currentSelection.reset();
+            currentSelection.stop();
         } else if (currentSingleSelection.check(item)) {
             piece.selected = true;
             let r = null;
             if (currentSingleSelection.nextCallback != null)
                 r = currentSingleSelection.nextCallback(item);
             currentSelection.next(r);
+            return true;
+        } else {
+            if (currentSingleSelection.autoCancel) currentSelection.stop();
         }
     }
     return false;
@@ -42,8 +45,12 @@ var GameboardClickListener = (position) => {
             if (currentSingleSelection.nextCallback != null)
                 r = currentSingleSelection.nextCallback(item);
             currentSelection.next(r);
+            return true;
+        } else {
+            if (currentSingleSelection.autoCancel) currentSelection.stop();
         }
     }
+    return false;
 };
 
 /**
@@ -52,6 +59,7 @@ var GameboardClickListener = (position) => {
  * @property {number} index - the index of the current recursion
  * @property {SingleSelection} current - the current recursion
  * @property {Function} afterSelection - action after the selection
+ * @property {boolean} once - whether set current selection to null after the selection
  */
 export class SelectionManager {
     /**
@@ -62,12 +70,24 @@ export class SelectionManager {
         this.afterSelection = afterSelection;
         this.recursions = singleSelections.map((s) => () => s);
         this.index = 0;
+        this.once = false;
         this.current = this.recursions[this.index]();
         this.results = [];
+        this.current.tip();
     }
 
+    /**
+     * @description A way to recurse a singleSelection into the selectionManager.
+     * @param {recursion} recursion
+     * @returns {SelectionManager}
+     */
     then(recursion) {
         this.recursions.push(recursion);
+        return this;
+    }
+
+    once(once = true) {
+        this.once = once;
         return this;
     }
 
@@ -75,18 +95,29 @@ export class SelectionManager {
         this.index = 0;
         this.results = [];
         this.current = this.recursions[this.index]();
+        this.current.tip();
     }
 
     next(result) {
         if (this.index >= this.recursions.length - 1) {
             this.results.push(result);
-            if (this.afterSelection != null) this.afterSelection(this.results);
-            this.reset();
+            this.stop(true);
         } else {
             this.index++;
-            this.current = this.recursions[this.index]();
+            this.current = this.recursions[this.index](result);
             this.results.push(result);
+            this.current.tip();
         }
+    }
+
+    stop(done = false) {
+        if (this.afterSelection != null && done) this.afterSelection(this.results);
+        this.reset();
+        document.querySelector("#action-bar span").innerText = "";
+        document.querySelector("#action-bar").style.display = "none";
+        if (this.once) currentSelection = null;
+        else this.current.tip();
+        pieces.forEach((p) => (p.selected = false));
     }
 }
 
@@ -132,7 +163,9 @@ export class SelectedItem {
  * @property {Array{Position}} positions - the positions to be highlighted
  * @property {Function} checkCallback - a function to check if the selection is valid
  * @property {string} type - the type of the item
+ * @property {string} description - will show on action bar
  * @property {Function?} nextCallback - a function to be called when the selection is valid
+ * @property {boolean} autoCancel - whether to cancel the selection automatically when the selection is not valid
  */
 export class SingleSelection {
     /**
@@ -141,11 +174,27 @@ export class SingleSelection {
      * @param {string} type
      * @param {Function?} checkCallback
      * @param {Function?} nextCallback
+     * @param {boolean} autoCancel
+     * @param {string?} description
      */
-    constructor(positions, type, checkCallback = null, nextCallback = null) {
+    constructor(
+        positions,
+        type,
+        description = null,
+        checkCallback = null,
+        nextCallback = null,
+        autoCancel = true
+    ) {
         this.positions = positions;
         this.type = type;
+        this.description =
+            description === null
+                ? type === ItemType.Piece
+                    ? "请选择一个棋子"
+                    : "请选择一个格点"
+                : description;
         this.checkCallback = checkCallback;
+        this.autoCancel = autoCancel;
         this.nextCallback = nextCallback === null ? returnSelf : nextCallback;
     }
 
@@ -160,6 +209,12 @@ export class SingleSelection {
         } else {
             return this.positions.some((pos) => pos.nearby(item.position()));
         }
+    }
+
+    tip() {
+        let element = document.querySelector("#action-bar span");
+        element.innerText = this.description;
+        element.parentElement.style.display = "block";
     }
 }
 
@@ -182,17 +237,24 @@ export function setGameboardClickListener(listener) {
 
 export function onPieceClick(piece) {
     if (PieceClickListener != null) {
-        PieceClickListener(piece);
+        return PieceClickListener(piece);
     }
+    return false;
 }
 
 export function onGameboardClick(pos) {
     if (GameboardClickListener != null) {
-        GameboardClickListener(pos);
+        return GameboardClickListener(pos);
     }
+    return false;
 }
 
 export function setCurrentSelection(selection) {
     currentSelection = selection;
 }
 
+/**
+ * @callback recursion
+ * @param {SelectedItem} result
+ * @returns {SingleSelection}
+ */

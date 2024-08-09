@@ -1,4 +1,4 @@
-import { Piece, Team } from "./piece.js";
+import { Piece, Team, PieceType } from "./piece.js";
 import { Position } from "./position.js";
 import { Vector2 } from "./vector.js";
 
@@ -7,6 +7,31 @@ const RED_BASE = [3, 5, 0, 2];
 const BLACK_BASE = [3, 5, 8, 10];
 const RED_TERRITORY = [0, 8, 0, 4];
 const BLACK_TERRITORY = [0, 8, 5, 9];
+
+var mapping = {};
+var mappingAttack = {};
+
+export function init() {
+    mapping = {
+        [PieceType.Guard]: DefaultMovingBehaviors.guard,
+        [PieceType.Elephant]: DefaultMovingBehaviors.elephant,
+        [PieceType.Horse]: DefaultMovingBehaviors.horse,
+        [PieceType.Chariot]: DefaultMovingBehaviors.chariot,
+        [PieceType.Gun]: DefaultMovingBehaviors.gunMove,
+        [PieceType.Pawn]: DefaultMovingBehaviors.pawn,
+        [PieceType.Master]: DefaultMovingBehaviors.master,
+    };
+
+    mappingAttack = {
+        [PieceType.Gun]: DefaultMovingBehaviors.gunAttack,
+        [PieceType.Master]: DefaultMovingBehaviors.master,
+        [PieceType.Chariot]: DefaultMovingBehaviors.chariot,
+        [PieceType.Horse]: DefaultMovingBehaviors.horse,
+        [PieceType.Elephant]: DefaultMovingBehaviors.elephant,
+        [PieceType.Guard]: DefaultMovingBehaviors.guard,
+        [PieceType.Pawn]: DefaultMovingBehaviors.pawn,
+    };
+}
 
 function GridAvailable(pos, config = BOARD) {
     return config[0] <= pos.x && pos.x <= config[1] && config[2] <= pos.y && pos.y <= config[3];
@@ -98,12 +123,6 @@ export class DefaultMovingBehaviors {
      * */
     static horse = (piece) => {
         return filterGrids((pos) => {
-            console.log(
-                piece.position,
-                pos,
-                piece.position.manhattanDistance(pos),
-                piece.position.chebyshevDistance(pos)
-            );
             if (
                 piece.position.manhattanDistance(pos) != 3 ||
                 piece.position.chebyshevDistance(pos) != 2
@@ -160,7 +179,7 @@ export class DefaultMovingBehaviors {
         let team = piece.team;
         let baseY = team === Team.Red ? 0 : 9;
         let passed = Math.abs(piece.position.y - baseY) > 4;
-        let directions = [team===Team.Red ? new Vector2(0, 1) : new Vector2(0, -1)];
+        let directions = [team === Team.Red ? new Vector2(0, 1) : new Vector2(0, -1)];
         if (passed) directions.push(...[new Vector2(1, 0), new Vector2(-1, 0)]);
         return filterGrids((pos) => {
             return directions.some(
@@ -168,4 +187,12 @@ export class DefaultMovingBehaviors {
             );
         });
     };
+
+    /**
+     * @param {Piece} piece
+     * @returns {Position[]}
+     */
+    static auto(piece, attack = false) {
+        return attack ? mappingAttack[piece.type](piece) : mapping[piece.type](piece);
+    }
 }

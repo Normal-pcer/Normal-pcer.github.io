@@ -1,3 +1,4 @@
+import { DefaultMovingBehaviors } from "./defaultMovingBehaviors.js";
 import { Position } from "./position.js";
 import { onPieceClick } from "./selection.js";
 
@@ -53,13 +54,17 @@ class Piece {
     }
 
     get destinations() {
-        return [];
+        return DefaultMovingBehaviors.auto(this);
+    }
+
+    get attackTargets() {
+        return DefaultMovingBehaviors.auto(this, true);
     }
 
     init() {
-        this.htmlElement.addEventListener("click", () => {
-            // this.toggleSelected();
-            onPieceClick(this);
+        this.htmlElement.addEventListener("click", (event) => {
+            if (onPieceClick(this))
+                event.stopPropagation();
         });
         this.draw();
     }
@@ -67,6 +72,16 @@ class Piece {
     draw() {
         this.htmlElement.style.left = this.position.getScreenPos()[0] + "px";
         this.htmlElement.style.top = this.position.getScreenPos()[1] + "px";
+    }
+
+    /**
+     *
+     * @param {Position} position
+     */
+    move(position) {
+        if (position.piece !== null) return;
+        this.position = position.integerGrid;
+        this.draw();
     }
 }
 

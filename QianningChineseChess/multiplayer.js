@@ -1,7 +1,9 @@
 import { Position } from "./position.js";
 import { Piece, PieceType, Team, pieces } from "./piece.js";
 import * as Selection from "./selection.js";
-import { DefaultMovingBehaviors } from "./defaultMovingBehaviors.js";
+import { DefaultMovingBehaviors, init } from "./defaultMovingBehaviors.js";
+
+init();
 
 /**
  * @type {Piece[]}
@@ -12,13 +14,30 @@ window.onload = () => {
 
     putPieces();
 
-    let se = new Selection.SelectionManager(
-        (final) =>
-            console.log(
-                final[0].data,
-                DefaultMovingBehaviors.gunAttack(final[0].data),
-            ),
-        new Selection.SingleSelection([], Selection.ItemType.Piece, () => true)
+    let se = new Selection.SelectionManager((final) => {
+        /**
+         * @type {Piece}
+         */
+        let piece = final[0].data;
+
+        /**
+         * @type {Position}
+         */
+        let pos = final[1].data;
+
+        piece.move(pos);
+    }, new Selection.SingleSelection([], Selection.ItemType.Piece, "请选择要移动的棋子", () => true)).then(
+        (piece) => {
+            /**
+             * @type {Piece}
+             */
+            let pieceData = piece.data;
+            return new Selection.SingleSelection(
+                pieceData.destinations,
+                Selection.ItemType.Grid,
+                "请选择目标"
+            );
+        }
     );
     Selection.setCurrentSelection(se);
 

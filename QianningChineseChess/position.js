@@ -125,7 +125,7 @@ export class Position {
     /**
      * @returns {Position}
      */
-    integerGrid() {
+    get integerGrid() {
         return new Position(Math.round(this.gridX), Math.round(this.gridY));
     }
 
