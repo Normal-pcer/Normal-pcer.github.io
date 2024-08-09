@@ -79,7 +79,7 @@ class Piece {
      * @param {Position} position
      */
     move(position) {
-        if (position.piece !== null) return;
+        if (position.integerGrid.piece !== null) return;
         this.position = position.integerGrid;
         this.draw();
     }
