@@ -40,6 +40,7 @@ var GameboardClickListener = (position) => {
     let currentSingleSelection = currentSelection.current;
     let item = new SelectedItem(position);
     if (currentSingleSelection != null && currentSingleSelection.type == ItemType.Grid) {
+        console.log(currentSingleSelection);
         if (currentSingleSelection.check(item)) {
             let r = null;
             if (currentSingleSelection.nextCallback != null)

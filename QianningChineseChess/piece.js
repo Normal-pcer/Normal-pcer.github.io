@@ -63,8 +63,7 @@ class Piece {
 
     init() {
         this.htmlElement.addEventListener("click", (event) => {
-            if (onPieceClick(this))
-                event.stopPropagation();
+            if (onPieceClick(this)) event.stopPropagation();
         });
         this.draw();
     }
@@ -82,6 +81,22 @@ class Piece {
         if (position.integerGrid.piece !== null) return;
         this.position = position.integerGrid;
         this.draw();
+    }
+
+    /**
+     *
+     * @param {Piece} piece
+     */
+    attack(piece) {
+        let pos = piece.position;
+        piece.damaged();
+        this.move(pos);
+    }
+
+    damaged() {
+        this.htmlElement.remove();
+        this.position = new Position(-10, -10, true);
+        pieces.pop(this);
     }
 }
 

@@ -11,10 +11,12 @@ init();
 
 window.onload = () => {
     document.getElementById("game-container").style.display = "block";
-
     putPieces();
 
-    let se = new Selection.SelectionManager((final) => {
+    /**
+     * @description 主要选择器，在几乎整个游戏周期内使用，用于移动棋子和控制攻击
+     */
+    let MainSelection = new Selection.SelectionManager((final) => {
         /**
          * @type {Piece}
          */
@@ -23,9 +25,15 @@ window.onload = () => {
         /**
          * @type {Position}
          */
-        let pos = final[1].data;
+        let pos = final[1].data.integerGrid;
 
-        piece.move(pos);
+        if (pos.piece == null) piece.move(pos);
+        else if (
+            piece.attackTargets.some((element) => {
+                return element.equals(pos);
+            })
+        )
+            piece.attack(pos.piece);
     }, new Selection.SingleSelection([], Selection.ItemType.Piece, "请选择要移动的棋子", () => true)).then(
         (piece) => {
             /**
@@ -33,13 +41,13 @@ window.onload = () => {
              */
             let pieceData = piece.data;
             return new Selection.SingleSelection(
-                pieceData.destinations,
+                pieceData.destinations.concat(pieceData.attackTargets),
                 Selection.ItemType.Grid,
                 "请选择目标"
             );
         }
     );
-    Selection.setCurrentSelection(se);
+    Selection.setCurrentSelection(MainSelection);
 
     Position._calculateGameboardSize();
     document.getElementById("gameboard").onclick = (event) => {
