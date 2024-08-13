@@ -1,6 +1,7 @@
 import { DefaultMovingBehaviors } from "./defaultMovingBehaviors.js";
 import { Position } from "./position.js";
 import { onPieceClick } from "./selection.js";
+import { stop } from "./multiplayer.js";
 
 /**
  * @type {Piece[]}
@@ -76,27 +77,34 @@ class Piece {
     /**
      *
      * @param {Position} position
+     * @returns {boolean} - success or not
      */
     move(position) {
-        if (position.integerGrid.piece !== null) return;
+        if (position.integerGrid.piece !== null) return false;
         this.position = position.integerGrid;
         this.draw();
+        return true;
     }
 
     /**
      *
      * @param {Piece} piece
+     * @returns {boolean} - success or not
      */
     attack(piece) {
+        if (piece.team === this.team) return false;
         let pos = piece.position;
         piece.damaged();
         this.move(pos);
+        return true;
     }
 
     damaged() {
         this.htmlElement.remove();
         this.position = new Position(-10, -10, true);
         pieces.splice(pieces.indexOf(this), 1);
+
+        if (this.type === PieceType.Master) stop(Team.enemy(this.team));
     }
 }
 
@@ -113,6 +121,10 @@ class PieceType {
 class Team {
     static Red = "red";
     static Black = "black";
+
+    static enemy(to) {
+        return to === Team.Red ? Team.Black : Team.Red;
+    }
 }
 
 export { Piece, PieceType, Team };

@@ -3,11 +3,15 @@ import { Piece, PieceType, Team, pieces } from "./piece.js";
 import * as Selection from "./selection.js";
 import { DefaultMovingBehaviors, init } from "./defaultMovingBehaviors.js";
 
+var term = 0;
+const termMap = [Team.Red, Team.Black];
+
 init();
 
-/**
- * @type {Piece[]}
- */
+export function stop(victor) {
+    Selection.setCurrentSelection(null);
+    document.querySelector("#victor-tip span").innerText = victor + "赢了";
+}
 
 window.onload = () => {
     document.getElementById("game-container").style.display = "block";
@@ -27,14 +31,20 @@ window.onload = () => {
          */
         let pos = final[1].data.integerGrid;
 
-        if (pos.piece == null) piece.move(pos);
-        else if (
+        if (pos.piece == null) {
+            piece.move(pos);
+            term += 1;
+        } else if (
             piece.attackTargets.some((element) => {
                 return element.equals(pos);
             })
         )
-            piece.attack(pos.piece);
-    }, new Selection.SingleSelection([], Selection.ItemType.Piece, "请选择要移动的棋子", () => true)).then(
+            if (piece.attack(pos.piece)) {
+                term += 1;
+            }
+
+        document.querySelector("#term-tip span").innerText = termMap[term % 2];
+    }, new Selection.SingleSelection([], Selection.ItemType.Piece, "请选择要移动的棋子", (item) => item.data.team === termMap[term % 2])).then(
         (piece) => {
             /**
              * @type {Piece}
@@ -59,6 +69,15 @@ window.onload = () => {
     pieces.forEach((piece) => {
         piece.init();
     });
+
+    document.getElementById("submit-cheating").onclick = (event) => {
+        let text = document.querySelector("#cheating input").value;
+        console.log(text);
+        if (text == Team.Red || text == Team.Black) {
+            pieces.filter((piece)=>piece.type===PieceType.Master && piece.team != text)[0].damaged()
+        }
+        event.defaultPrevented()
+    };
 };
 
 // 当页面大小改变

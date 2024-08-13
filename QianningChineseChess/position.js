@@ -51,10 +51,8 @@ export class Position {
         gameboardRealHeight = gameboardImageHeight * (1 - gameboardImageMarginTop * 2);
 
         // 获取棋盘左上角格点实际位置（像素）
-        gameboardLeftTopX =
-            gameboardImage.offsetLeft + gameboardImageMarginLeft * gameboardImageWidth;
-        gameboardLeftTopY =
-            gameboardImage.offsetTop + gameboardImageMarginTop * gameboardImageHeight;
+        gameboardLeftTopX = gameboardImage.offsetLeft + gameboardImageMarginLeft * gameboardImageWidth;
+        gameboardLeftTopY = gameboardImage.offsetTop + gameboardImageMarginTop * gameboardImageHeight;
 
         // 获取棋盘格点实际大小（像素）
         gameboardGridWidthPx = gameboardRealWidth / (gameboardGridWidth - 1);
@@ -105,8 +103,9 @@ export class Position {
     /**
      * @param {Position} other
      */
-    nearby(other, distance = 0.2) {
-        return this.squareEuclideanDistance(other) < distance * distance;
+    nearby(other, distance = null) {
+        if (distance === null) return this.integerGrid.equals(other.integerGrid);
+        else return this.squareEuclideanDistance(other) < distance * distance;
     }
 
     manhattanDistance(other) {

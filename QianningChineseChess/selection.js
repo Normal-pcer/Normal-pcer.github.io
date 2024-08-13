@@ -15,7 +15,7 @@ var PieceClickListener = (piece) => {
     let currentSingleSelection = currentSelection.current;
     let item = new SelectedItem(piece);
     if (currentSingleSelection != null && currentSingleSelection.type == ItemType.Piece) {
-        console.log(piece);
+        console.log(piece) ;
         if (piece.selected) {
             piece.selected = false;
             currentSelection.stop();

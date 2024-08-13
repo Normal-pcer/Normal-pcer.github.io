@@ -24,7 +24,7 @@ export function init() {
 
     mappingAttack = {
         [PieceType.Gun]: DefaultMovingBehaviors.gunAttack,
-        [PieceType.Master]: DefaultMovingBehaviors.master,
+        [PieceType.Master]: DefaultMovingBehaviors.masterAttack,
         [PieceType.Chariot]: DefaultMovingBehaviors.chariot,
         [PieceType.Horse]: DefaultMovingBehaviors.horse,
         [PieceType.Elephant]: DefaultMovingBehaviors.elephant,
@@ -85,10 +85,24 @@ export class DefaultMovingBehaviors {
      * @return {Position[]}
      */
     static master = (piece) => {
+        console.log(piece);
         let team = piece.team;
         let config = team === Team.Red ? RED_BASE : BLACK_BASE;
         return filterGrids((pos) => piece.position.manhattanDistance(pos) == 1, config);
     };
+    /**
+     * @param {Piece} piece
+     * @return {Position[]}
+     */
+    static masterAttack = (piece) => {
+        console.log(piece);
+        return this.master(piece).concat(
+            ray(piece.position, new Vector2(0, 1))
+                .concat(ray(piece.position, new Vector2(0, -1)))
+                .filter((pos) => pos.piece != null && pos.piece.type === PieceType.Master)
+        );
+    };
+
     /**
      * @param {Piece} piece
      * @return {Position[]}
@@ -110,12 +124,17 @@ export class DefaultMovingBehaviors {
     static elephant = (piece) => {
         let team = piece.team;
         let config = team === Team.Red ? RED_TERRITORY : BLACK_TERRITORY;
-        return filterGrids(
-            (pos) =>
+        return filterGrids((pos) => {
+            if (
                 piece.position.manhattanDistance(pos) == 4 &&
-                piece.position.chebyshevDistance(pos) == 2,
-            config
-        );
+                piece.position.chebyshevDistance(pos) == 2
+            ) {
+                let pointer = Vector2.of(piece.position, pos);
+                let check = piece.position.add(pointer.div(2));
+                return check.piece === null;
+            }
+            return false;
+        }, config);
     };
     /**
      * @param {Piece} piece
